@@ -2,8 +2,8 @@
 #include "logpublisher.h"
 
 // Initialize motor control parameters
-float motorSpeedInHz = 300.0f; // Default motor speed in Hz
-float motorAcceleration = 300.0f; // Default motor acceleration in Hz^2
+float motorSpeedInHz = 10.0f; // Default motor speed in Hz
+float motorAcceleration = 50.0f; // Default motor acceleration in Hz^2
 
 void initMotorControl(FastAccelStepper* stepper) {
     if (stepper == nullptr) {
@@ -37,12 +37,15 @@ void moveMotor(const std_msgs__msg__Float32* msg) {
     dtostrf(targetSteps, 1, 2, targetStepsStr);
     publish_log(targetStepsStr);
 
+    // Convert to integer for motor movement
+    int targetStepsInt = static_cast<int>(targetSteps);
     // Move the motor to the desired position
     stepper->move(targetSteps);
+    
 
     // Wait for the move to complete or limit switch to trigger
     while (stepper->isRunning()) {
-        if (digitalRead(limitSwitchPinX) == LOW) {
+        if (digitalRead(limitSwitchPinX) == HIGH) {
             Serial.println("Limit switch triggered. Stopping motor.");
             publish_log("Limit switch triggered. Stopping motor.");
             stepper->stopMove();

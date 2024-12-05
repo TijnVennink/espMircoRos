@@ -34,11 +34,11 @@ void motor_callback(const void* msgin) {
         publish_log("Homing command received.");
         homeStepper(stepper);
         homing_complete = true;  // Set flag to true after homing
-    } else if (msg->data != 0.0f) {
+    } else if (msg->data != 0.0f && homing_complete) {
         publish_log("moveMotor(msg) called");
         moveMotor(msg);
     } else {
-        publish_log("Please JP and Iris home first");
+        publish_log("You did not home right?");
     }
 }
 

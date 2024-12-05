@@ -2,8 +2,8 @@
 #include "logpublisher.h" 
 
 // Initialize homing parameters
-float homingSpeedInHz = 200.0f; // homing speed in Hz
-float homingAcceleration = 200.0f; // homing acceleration in Hz^2
+float homingSpeedInHz = 2.5f; // homing speed in Hz
+float homingAcceleration = 20.0f; // homing acceleration in Hz^2
 
 // Adjust homing functions
 void initHoming(FastAccelStepper* stepper) {
@@ -38,7 +38,7 @@ void homeStepper(FastAccelStepper* stepper) {
     delay(1000);  // Adjust delay if needed to give time for stop to take effect
     
     // Now move back a small distance if needed
-    stepper->move(500);  // Move a little bit back after homing
+    stepper->move(10);  // Move a little bit back after homing
     Serial.println("Moved back right?");
     
     while (stepper->isRunning()) {
