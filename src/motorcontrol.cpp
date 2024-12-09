@@ -5,8 +5,8 @@
 float motorSpeedInHz = 30.0f; // Default motor speed in Hz
 float motorAcceleration = 50.0f; // Default motor acceleration in Hz^2
 
-void initMotorControl(FastAccelStepper* stepper, FastAccelStepper* stepperY) {
-    if (stepper == nullptr) {
+void initMotorControl(FastAccelStepper* stepperX, FastAccelStepper* stepperY) {
+    if (stepperX == nullptr) {
         Serial.println("Motor control initialization failed: Stepper is null.");
         publish_log("Motor control initialization failed: Stepper is null.");
         return;
@@ -19,8 +19,8 @@ void initMotorControl(FastAccelStepper* stepper, FastAccelStepper* stepperY) {
     }
 
     // Set initial speed and acceleration
-    stepper->setSpeedInHz(motorSpeedInHz);
-    stepper->setAcceleration(motorAcceleration);
+    stepperX->setSpeedInHz(motorSpeedInHz);
+    stepperX->setAcceleration(motorAcceleration);
     stepperY->setSpeedInHz(motorSpeedInHz);
     stepperY->setAcceleration(motorAcceleration);
 
@@ -29,15 +29,15 @@ void initMotorControl(FastAccelStepper* stepper, FastAccelStepper* stepperY) {
 }
 
 void moveMotorX(const std_msgs__msg__Float32* msg) {
-    if (stepper == nullptr) {
+    if (stepperX == nullptr) {
         Serial.println("Move motor command failed: Stepper is null.");
         publish_log("Move motor command failed: Stepper is null.");
         return;
     }
 
     // Set speed and acceleration
-    stepper->setSpeedInHz(motorSpeedInHz);
-    stepper->setAcceleration(motorAcceleration);
+    stepperX->setSpeedInHz(motorSpeedInHz);
+    stepperX->setAcceleration(motorAcceleration);
     
     float targetSteps = msg->data;
     char targetStepsStr[20];
@@ -47,15 +47,15 @@ void moveMotorX(const std_msgs__msg__Float32* msg) {
     // Convert to integer for motor movement
     int targetStepsInt = static_cast<int>(targetSteps);
     // Move the motor to the desired position
-    stepper->move(targetSteps);
+    stepperX->move(targetSteps);
     
 
     // Wait for the move to complete or limit switch to trigger
-    while (stepper->isRunning()) {
-        if (digitalRead(limitSwitchPinX) == HIGH) {
+    while (stepperX->isRunning()) {
+        if (digitalRead(limitSwitchPin) == HIGH) {
             Serial.println("Limit switch triggered. Stopping motor.");
             publish_log("Limit switch(X) triggered. Stopping motor.");
-            stepper->stopMove();
+            stepperX->stopMove();
             break;
         }
         delay(10);
@@ -84,49 +84,10 @@ void moveMotorY(const std_msgs__msg__Float32* msg) {
 
     // Wait for the move to complete or limit switch to trigger
     while (stepperY->isRunning()) {
-        if (digitalRead(limitSwitchPinX) == HIGH) {
+        if (digitalRead(limitSwitchPin) == HIGH) {
             Serial.println("Limit switch triggered. Stopping motor.");
             publish_log("Limit switch(Y) triggered. Stopping motor.");
             stepperY->stopMove();
-            break;
-        }
-        delay(10);
-    }
-
-    Serial.println("Motor movement completed.");
-    publish_log("Motor movement completed.");
-}
-
-
-
-void moveMotorZ(const std_msgs__msg__Float32* msg) {
-    if (stepper == nullptr) {
-        Serial.println("Move motor command failed: Stepper is null.");
-        publish_log("Move motor command failed: Stepper is null.");
-        return;
-    }
-
-    // Set speed and acceleration
-    stepper->setSpeedInHz(motorSpeedInHz);
-    stepper->setAcceleration(motorAcceleration);
-    
-    float targetSteps = msg->data;
-    char targetStepsStr[20];
-    dtostrf(targetSteps, 1, 2, targetStepsStr);
-    publish_log(targetStepsStr);
-
-    // Convert to integer for motor movement
-    int targetStepsInt = static_cast<int>(targetSteps);
-    // Move the motor to the desired position
-    stepper->move(targetSteps);
-    
-
-    // Wait for the move to complete or limit switch to trigger
-    while (stepper->isRunning()) {
-        if (digitalRead(limitSwitchPinX) == HIGH) {
-            Serial.println("Limit switch triggered. Stopping motor.");
-            publish_log("Limit switch(Z) triggered. Stopping motor.");
-            stepper->stopMove();
             break;
         }
         delay(10);

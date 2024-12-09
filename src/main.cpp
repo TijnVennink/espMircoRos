@@ -53,8 +53,6 @@ void cleanup_float32_multi_array(std_msgs__msg__Float32MultiArray *msg) {
 // Define the message and buffer for pre-allocation
 float buffer[3];
 std_msgs__msg__Float32MultiArray motor_msg;
-///////////////////////////////////////////////////////
-
 rclc_executor_t executor;
 rclc_support_t support;
 rcl_allocator_t allocator;
@@ -64,7 +62,7 @@ rcl_node_t node;
 #define RCSOFTCHECK(fn) { rcl_ret_t temp_rc = fn; if ((temp_rc != RCL_RET_OK)) {} }
 
 FastAccelStepperEngine engine;
-FastAccelStepper* stepper = nullptr;
+FastAccelStepper* stepperX = nullptr;
 FastAccelStepper* stepperY = nullptr;
 
 
@@ -106,7 +104,7 @@ void motor_callback(const void* msgin) {
     if (x_none && y_none && z_none) {
         if (!homing_complete) {
             publish_log("All motor inputs are None. Starting homing sequence.");
-            homeStepper(stepper, stepperY);
+            homeSteppers(stepperX, stepperY);
             homing_complete = true;  // Mark homing as complete
         } else {
             publish_log("Homing already completed. No motor commands to execute.");
@@ -127,7 +125,8 @@ void motor_callback(const void* msgin) {
 
     if (!z_none) {
         publish_log("Moving Z motor.");
-        moveMotorZ(&z_msg);
+        // No MotorZ attached yet :()
+        // moveMotorZ(&z_msg);
     }
 }
 
@@ -139,17 +138,17 @@ void setup() {
 
     // Initialize stepper X
     engine.init();
-    stepper = engine.stepperConnectToPin(stepPinStepperX);
-    if (!stepper) {
+    stepperX = engine.stepperConnectToPin(stepPinStepperX);
+    if (!stepperX) {
         Serial.println("Failed to initialize stepper X!");
         publish_log("Failed to initialize stepper X!");
         return;
     }
 
-    stepper->setDirectionPin(dirPinStepperX);
-    stepper->setEnablePin(enablePinStepperX);
-    stepper->setAutoEnable(false);
-    stepper->enableOutputs();
+    stepperX->setDirectionPin(dirPinStepperX);
+    stepperX->setEnablePin(enablePinStepperX);
+    stepperX->setAutoEnable(false);
+    stepperX->enableOutputs();
 
     // Initialize stepper Y
     stepperY = engine.stepperConnectToPin(stepPinStepperY);
@@ -174,11 +173,11 @@ void setup() {
     publish_log("Log publisher booted");
 
     // Initialize motor system
-    initMotorControl(stepper, stepperY);
+    initMotorControl(stepperX, stepperY);
     publish_log("Motor control initialized");
 
     // Initialize homing system
-    initHoming(stepper, stepperY);
+    initHoming(stepperX, stepperY);
     publish_log("Homing initialized");
 
     // Initialize the subscriber

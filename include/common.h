@@ -10,7 +10,7 @@
 
 // Shared variables
 extern FastAccelStepperEngine engine;
-extern FastAccelStepper* stepper;
+extern FastAccelStepper* stepperX;
 extern FastAccelStepper* stepperY;
 
 #define RMW_UXRCE_MAX_NODES 2
@@ -24,25 +24,23 @@ extern float homingAcceleration;
 #define stepPinStepperX 5
 #define dirPinStepperX 6
 #define enablePinStepperX 7
-#define limitSwitchPinX 8 //Same pin for now
+#define limitSwitchPin 8 //Same pin for now
 
 #define stepPinStepperY 9
 #define dirPinStepperY 10
 #define enablePinStepperY 11
-#define limitSwitchPinY 8 //Same pin for now
 
 #define stepPinStepperZ 13
 #define dirPinStepperZ 14
 #define enablePinStepperZ 15
-#define limitSwitchPinZ 8 //Same pin for now
  
 // Function prototypes
 void init_float32_multi_array(std_msgs__msg__Float32MultiArray *msg, float *buffer, size_t size);
 void cleanup_float32_multi_array(std_msgs__msg__Float32MultiArray *msg);
-void initHoming(FastAccelStepper* stepper, FastAccelStepper* stepperY);
-void homeStepper(FastAccelStepper* stepper, FastAccelStepper* stepperY);
-void homeStepperAxix(FastAccelStepper* stepper);
-void initMotorControl(FastAccelStepper* stepper, FastAccelStepper* stepperY);
+void initHoming(FastAccelStepper* stepperX, FastAccelStepper* stepperY);
+void homeStepperAxis(FastAccelStepper* stepperX);
+void homeSteppers(FastAccelStepper* stepperX, FastAccelStepper* stepperY);
+void initMotorControl(FastAccelStepper* stepperX, FastAccelStepper* stepperY);
 void moveMotorX(const std_msgs__msg__Float32* msg);
 void moveMotorY(const std_msgs__msg__Float32* msg);
 void moveMotorZ(const std_msgs__msg__Float32* msg);
