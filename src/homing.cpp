@@ -1,5 +1,6 @@
 #include "common.h"
 #include "logpublisher.h" 
+#include "homingpublisher.h" 
 
 // Initialize homing parameters
 float homingSpeedInHz = 10.0f; // homing speed in Hz
@@ -54,6 +55,9 @@ void homeStepperAxis(FastAccelStepper* stepper) {
 
     Serial.println("Limit switch triggered.");
     publish_log("Limit switch triggered.");
+
+    // // Publish that this axis is at the negative limit position
+    // publish_homing_log("At negative limit position");
     
     // Now move back a small distance if needed
     stepper->move(10);  // Move a little bit back after homing
@@ -67,7 +71,9 @@ void homeStepperAxis(FastAccelStepper* stepper) {
 
     Serial.println("Limit switch triggered.");
     publish_log("At negative limit position");
-    // PUBLISH THIS HERE!
+    
+    // // Publish that this axis is at the positive limit position
+    // publish_homing_log("At positive limit position");
 
 
     // Some delay for the message to be published

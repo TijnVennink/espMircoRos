@@ -2,9 +2,11 @@
 #include <micro_ros_platformio.h>
 #include <std_msgs/msg/float32.h>
 #include "logpublisher.h" 
+#include "homingpublisher.h"
 #include <std_msgs/msg/float32_multi_array.h>
 #include <stdlib.h>
 #include "common.h"
+
 
 // ROS setup
 rcl_subscription_t subscriber;
@@ -131,17 +133,21 @@ void motor_callback(const void* msgin) {
 }
 
 void setup() {
-    init_float32_multi_array(&motor_msg, buffer, 3);
     Serial.begin(115200);
+    while (!Serial) {
+        ; // Wait for serial port to connect. Needed for native USB
+    }
+    Serial.println("Starting setup...");
+
     set_microros_serial_transports(Serial);
     delay(1000);
 
+    Serial.println("Initializing stepper X...");
     // Initialize stepper X
     engine.init();
     stepperX = engine.stepperConnectToPin(stepPinStepperX);
     if (!stepperX) {
         Serial.println("Failed to initialize stepper X!");
-        publish_log("Failed to initialize stepper X!");
         return;
     }
 
@@ -149,12 +155,13 @@ void setup() {
     stepperX->setEnablePin(enablePinStepperX);
     stepperX->setAutoEnable(false);
     stepperX->enableOutputs();
+    Serial.println("Stepper X initialized.");
 
+    Serial.println("Initializing stepper Y...");
     // Initialize stepper Y
     stepperY = engine.stepperConnectToPin(stepPinStepperY);
     if (!stepperY) {
         Serial.println("Failed to initialize stepper Y!");
-        publish_log("Failed to initialize stepper Y!");
         return;
     }
 
@@ -162,7 +169,9 @@ void setup() {
     stepperY->setEnablePin(enablePinStepperY);
     stepperY->setAutoEnable(false);
     stepperY->enableOutputs();
+    Serial.println("Stepper Y initialized.");
 
+    Serial.println("Setting up ROS...");
     // ROS setup
     allocator = rcl_get_default_allocator();
     RCCHECK(rclc_support_init(&support, 0, NULL, &allocator));
@@ -172,13 +181,9 @@ void setup() {
     init_log_publisher(&node);
     publish_log("Log publisher booted");
 
-    // Initialize motor system
-    initMotorControl(stepperX, stepperY);
-    publish_log("Motor control initialized");
-
-    // Initialize homing system
-    initHoming(stepperX, stepperY);
-    publish_log("Homing initialized");
+    // // Initialize the homing publisher (defined in homingpublisher.cpp)
+    // init_homing_publisher(&node);
+    // publish_log("Homing publisher booted");
 
     // Initialize the subscriber
     RCCHECK(rclc_subscription_init_default(
@@ -191,7 +196,6 @@ void setup() {
     // Initialize the executor
     RCCHECK(rclc_executor_init(&executor, &support.context, 1, &allocator));
     RCCHECK(rclc_executor_add_subscription(&executor, &subscriber, &motor_msg, &motor_callback, ALWAYS));
-
 
     Serial.println("ROS setup completed. Waiting for commands...");
     publish_log("Almighty not robotic ARM legendary ROS setup completed. Waiting for commands...");
