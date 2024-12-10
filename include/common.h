@@ -12,6 +12,7 @@
 extern FastAccelStepperEngine engine;
 extern FastAccelStepper* stepperX;
 extern FastAccelStepper* stepperY;
+extern FastAccelStepper* stepperZ;
 
 #define RMW_UXRCE_MAX_NODES 2
 #define SUBSCRIBER_NUMBER 1
@@ -37,10 +38,11 @@ extern float homingAcceleration;
 // Function prototypes
 void init_float32_multi_array(std_msgs__msg__Float32MultiArray *msg, float *buffer, size_t size);
 void cleanup_float32_multi_array(std_msgs__msg__Float32MultiArray *msg);
-void initHoming(FastAccelStepper* stepperX, FastAccelStepper* stepperY);
+void initHoming(FastAccelStepper* stepperX, FastAccelStepper* stepperY, FastAccelStepper* stepperZ);
 void homeStepperAxis(FastAccelStepper* stepperX);
-void homeSteppers(FastAccelStepper* stepperX, FastAccelStepper* stepperY);
-void initMotorControl(FastAccelStepper* stepperX, FastAccelStepper* stepperY);
+void homeStepperAxis(FastAccelStepper* stepper, const char* stepperName);
+void homeSteppers(FastAccelStepper* stepperX, FastAccelStepper* stepperY, FastAccelStepper* stepperZ);
+void initMotorControl(FastAccelStepper* stepperX, FastAccelStepper* stepperY, FastAccelStepper* stepperZ);
 void moveMotorX(const std_msgs__msg__Float32* msg);
 void moveMotorY(const std_msgs__msg__Float32* msg);
 void moveMotorZ(const std_msgs__msg__Float32* msg);

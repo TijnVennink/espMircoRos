@@ -64,6 +64,7 @@ rcl_node_t node;
 FastAccelStepperEngine engine;
 FastAccelStepper* stepperX = nullptr;
 FastAccelStepper* stepperY = nullptr;
+FastAccelStepper* stepperZ = nullptr;
 
 
 bool homing_complete = false;
@@ -104,7 +105,7 @@ void motor_callback(const void* msgin) {
     if (x_none && y_none && z_none) {
         if (!homing_complete) {
             publish_log("All motor inputs are None. Starting homing sequence.");
-            homeSteppers(stepperX, stepperY);
+            homeSteppers(stepperX, stepperY, stepperX);
             homing_complete = true;  // Mark homing as complete
         } else {
             publish_log("Homing already completed. No motor commands to execute.");
@@ -125,8 +126,7 @@ void motor_callback(const void* msgin) {
 
     if (!z_none) {
         publish_log("Moving Z motor.");
-        // No MotorZ attached yet :()
-        // moveMotorZ(&z_msg);
+        moveMotorZ(&z_msg);
     }
 }
 
@@ -163,6 +163,19 @@ void setup() {
     stepperY->setAutoEnable(false);
     stepperY->enableOutputs();
 
+        // Initialize stepper Z
+    stepperZ = engine.stepperConnectToPin(stepPinStepperZ);
+    if (!stepperZ) {
+        Serial.println("Failed to initialize stepper Z!");
+        publish_log("Failed to initialize stepper Z!");
+        return;
+    }
+
+    stepperZ->setDirectionPin(dirPinStepperZ);
+    stepperZ->setEnablePin(enablePinStepperZ);
+    stepperZ->setAutoEnable(false);
+    stepperZ->enableOutputs();
+
     // ROS setup
     allocator = rcl_get_default_allocator();
     RCCHECK(rclc_support_init(&support, 0, NULL, &allocator));
@@ -173,11 +186,11 @@ void setup() {
     publish_log("Log publisher booted");
 
     // Initialize motor system
-    initMotorControl(stepperX, stepperY);
+    initMotorControl(stepperX, stepperY, stepperZ);
     publish_log("Motor control initialized");
 
     // Initialize homing system
-    initHoming(stepperX, stepperY);
+    initHoming(stepperX, stepperY, stepperZ);
     publish_log("Homing initialized");
 
     // Initialize the subscriber
