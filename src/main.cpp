@@ -105,7 +105,7 @@ void motor_callback(const void* msgin) {
     if (x_none && y_none && z_none) {
         if (!homing_complete) {
             publish_log("All motor inputs are None. Starting homing sequence.");
-            homeSteppers(stepperX, stepperY, stepperX);
+            homeSteppers(stepperX, stepperY, stepperZ);
             homing_complete = true;  // Mark homing as complete
         } else {
             publish_log("Homing already completed. No motor commands to execute.");
@@ -114,21 +114,12 @@ void motor_callback(const void* msgin) {
     }
 
     // Control each motor if a command is present
-    if (!x_none) {
-        publish_log("Moving X motor.");
-        moveMotorX(&x_msg);
-    }
-
-    if (!y_none) {
-        publish_log("Moving Y motor.");
-        moveMotorY(&y_msg);
-    }
-
-    if (!z_none) {
-        publish_log("Moving Z motor.");
-        moveMotorZ(&z_msg);
+    // If one of them is not none, move motors with desired step amount
+    if (!x_none || !y_none || !z_none) {
+        moveMotorsXYZ(&x_msg, &y_msg, &z_msg);
     }
 }
+
 
 void setup() {
     init_float32_multi_array(&motor_msg, buffer, 3);

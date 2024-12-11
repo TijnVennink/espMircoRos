@@ -31,9 +31,9 @@ extern float homingAcceleration;
 #define dirPinStepperY 10
 #define enablePinStepperY 11
 
-#define stepPinStepperZ 13
-#define dirPinStepperZ 14
-#define enablePinStepperZ 15
+#define stepPinStepperZ 15
+#define dirPinStepperZ 16
+#define enablePinStepperZ 17
  
 // Function prototypes
 void init_float32_multi_array(std_msgs__msg__Float32MultiArray *msg, float *buffer, size_t size);
@@ -46,5 +46,6 @@ void initMotorControl(FastAccelStepper* stepperX, FastAccelStepper* stepperY, Fa
 void moveMotorX(const std_msgs__msg__Float32* msg);
 void moveMotorY(const std_msgs__msg__Float32* msg);
 void moveMotorZ(const std_msgs__msg__Float32* msg);
+void moveMotorsXYZ(const std_msgs__msg__Float32* msgX, const std_msgs__msg__Float32* msgY, const std_msgs__msg__Float32* msgZ);
 
 #endif // COMMON_H
