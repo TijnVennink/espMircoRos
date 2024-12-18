@@ -5,6 +5,9 @@
 #include <std_msgs/msg/float32_multi_array.h>
 #include <stdlib.h>
 #include "common.h"
+#include <rclc/executor.h>
+#include <rclc/rclc.h>
+#include <rmw/qos_profiles.h>
 
 // ROS setup
 rcl_subscription_t subscriber;
@@ -184,12 +187,17 @@ void setup() {
     initHoming(stepperX, stepperY, stepperZ);
     publish_log("Homing initialized");
 
-    // Initialize the subscriber
-    RCCHECK(rclc_subscription_init_default(
+    // Define a custom QoS profile with a larger queue size
+    rmw_qos_profile_t custom_qos = rmw_qos_profile_default;
+    custom_qos.depth = 100; // Set the queue size to 50
+
+    // Initialize the subscriber with the custom QoS profile
+    RCCHECK(rclc_subscription_init(
         &subscriber,
         &node,
         ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Float32MultiArray),
-        "motor_command"
+        "motor_command",
+        &custom_qos
     ));
 
     // Initialize the executor

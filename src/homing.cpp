@@ -1,21 +1,16 @@
 #include "common.h"
 #include "logpublisher.h" 
 
-// Initialize homing parameters
-float homingSpeedInHz = 10.0f; // homing speed in Hz
-float homingAcceleration = 50.0f; // homing acceleration in Hz^2
-
-
 // Adjust homing functions
 void initHoming(FastAccelStepper* stepperX, FastAccelStepper* stepperY, FastAccelStepper* stepperZ)  {
     pinMode(limitSwitchPin, INPUT_PULLUP);  // Set limit switch pin as input with pull-up resistor
     // Initialize stepper motor settings, etc.
-    stepperX->setSpeedInHz(homingSpeedInHz);
-    stepperX->setAcceleration(homingAcceleration);
-    stepperY->setSpeedInHz(homingSpeedInHz);
-    stepperY->setAcceleration(homingAcceleration);
-    stepperZ->setSpeedInHz(homingSpeedInHz);
-    stepperZ->setAcceleration(homingAcceleration);
+    stepperX->setSpeedInHz(motorSpeedInHz);
+    stepperX->setAcceleration(maxAccelerationInHz2);
+    stepperY->setSpeedInHz(motorSpeedInHz);
+    stepperY->setAcceleration(maxAccelerationInHz2);
+    stepperZ->setSpeedInHz(motorSpeedInHz);
+    stepperZ->setAcceleration(maxAccelerationInHz2);
 }
 
 void homeSteppers(FastAccelStepper* stepperX, FastAccelStepper* stepperY, FastAccelStepper* stepperZ) {
@@ -23,12 +18,12 @@ void homeSteppers(FastAccelStepper* stepperX, FastAccelStepper* stepperY, FastAc
     publish_log("Homing started...");
     
     // Initialize stepper motor settings, etc.
-    stepperX->setSpeedInHz(homingSpeedInHz);
-    stepperX->setAcceleration(homingAcceleration);
-    stepperY->setSpeedInHz(homingSpeedInHz);
-    stepperY->setAcceleration(homingAcceleration);
-    stepperZ->setSpeedInHz(homingSpeedInHz);
-    stepperZ->setAcceleration(homingAcceleration);
+    stepperX->setSpeedInHz(motorSpeedInHz);
+    stepperX->setAcceleration(maxAccelerationInHz2);
+    stepperY->setSpeedInHz(motorSpeedInHz);
+    stepperY->setAcceleration(maxAccelerationInHz2);
+    stepperZ->setSpeedInHz(motorSpeedInHz);
+    stepperZ->setAcceleration(maxAccelerationInHz2);
 
     // Home x-axis
     publish_log("-------Called homing of X-axis!-------");
@@ -60,7 +55,7 @@ void homeStepperAxis(FastAccelStepper* stepper, const char* stepperName) {
     }
 
     // Once triggered, stop the motor and perform any necessary actions
-    stepper->setAcceleration(homingAcceleration * 10.0);
+    stepper->setAcceleration(maxAccelerationInHz2 * 10.0);
     stepper->stopMove();
 
     snprintf(logMessage, sizeof(logMessage), "Homing %s: Limit switch triggered", stepperName);
@@ -92,7 +87,7 @@ void homeStepperAxis(FastAccelStepper* stepper, const char* stepperName) {
     }
 
     // Once triggered, stop the motor and perform any necessary actions
-    stepper->setAcceleration(homingAcceleration * 10.0);
+    stepper->setAcceleration(maxAccelerationInHz2 * 10.0);
     stepper->stopMove();
 
     snprintf(logMessage, sizeof(logMessage), "Homing %s: Limit switch triggered", stepperName);
