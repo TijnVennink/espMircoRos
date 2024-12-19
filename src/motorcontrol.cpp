@@ -140,24 +140,24 @@ void moveMotorsXYZ(const std_msgs__msg__Float32 *msgX, const std_msgs__msg__Floa
     int targetStepsIntX = static_cast<int>(targetStepsX);
     int targetStepsIntY = static_cast<int>(targetStepsY);
     int targetStepsIntZ = static_cast<int>(targetStepsZ);
-
+    
     // Move the motors to the desired positions
     stepperX->moveTo(targetStepsIntX);
     stepperY->moveTo(targetStepsIntY);
     stepperZ->moveTo(targetStepsIntZ);
 
-    // Wait for the moves to complete or limit switches to trigger
-    while (stepperX->stepsToStop() > 10 || stepperY->stepsToStop() > 10 || stepperZ->stepsToStop() > 10)
-    {
-        if (digitalRead(limitSwitchPin) == HIGH)
-        {
-            Serial.println("Limit switch triggered. Stopping all motors.");
-            publish_log("Limit switch triggered. Stopping all motors.");
-            stopAllMotors();
-            break;
-        }
-        delay(1);
-    }
+    // // Wait for the moves to complete or limit switches to trigger
+    // while (stepperX->stepsToStop() > 15 || stepperY->stepsToStop() > 15 || stepperZ->stepsToStop() > 15)
+    // {
+    //     if (digitalRead(limitSwitchPin) == HIGH)
+    //     {
+    //         Serial.println("Limit switch triggered. Stopping all motors.");
+    //         publish_log("Limit switch triggered. Stopping all motors.");
+    //         stopAllMotors();
+    //         break;
+    //     }
+    //     delay(1);
+    // }
 
     // Serial.println("Motors movement completed.");
     // publish_log("Motors movement completed.");
