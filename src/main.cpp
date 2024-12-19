@@ -82,12 +82,16 @@ void error_loop() {
 void motor_callback(const void* msgin) {
     const std_msgs__msg__Float32MultiArray* msg = (const std_msgs__msg__Float32MultiArray*)msgin;
 
-    publish_log("motor_callback called");
-
-    // Check the size of the array
+    // Check the size of the array for homing, and checking.
     if (msg->data.size < 3) {
-        publish_log("Invalid message size. Expected 3 values.");
-        return;
+        if (!homing_complete) {
+            publish_log("All motor inputs are None. Starting homing sequence.");
+            homeSteppers(stepperX, stepperY, stepperZ);
+            homing_complete = true;  // Mark homing as complete
+        } else {
+            publish_log("Invalid message size. Expected 3 values.");
+            publish_log("Homing already completed. No motor commands to execute.");
+        }
     }
 
     // Temporary structures to pass single motor data
@@ -101,28 +105,7 @@ void motor_callback(const void* msgin) {
     z_msg.data = msg->data.data[2]; // Z motor control
 
     moveMotorsXYZ(&x_msg, &y_msg, &z_msg);
-
-    // // Check if all inputs are None (interpreted as 0.0f for this example)
-    // bool x_none = x_msg.data == 0.0f;
-    // bool y_none = y_msg.data == 0.0f;
-    // bool z_none = z_msg.data == 0.0f;
-
-    // if (x_none && y_none && z_none) {
-    //     if (!homing_complete) {
-    //         publish_log("All motor inputs are None. Starting homing sequence.");
-    //         homeSteppers(stepperX, stepperY, stepperZ);
-    //         homing_complete = true;  // Mark homing as complete
-    //     } else {
-    //         publish_log("Homing already completed. No motor commands to execute.");
-    //     }
-    //     return;
-    // }
-
-    // Control each motor if a command is present
-    // If one of them is not none, move motors with desired step amount
-    // if (!x_none || !y_none || !z_none) {
-    //     moveMotorsXYZ(&x_msg, &y_msg, &z_msg);
-    // }
+    return;
 }
 
 

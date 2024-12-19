@@ -42,10 +42,12 @@ extern float maxAccelerationInHz2;
 #define dirPinStepperZ 16
 #define enablePinStepperZ 17
 
-// Micro stepping, pulses per revolution, and pulley diameter
-const int micro_step = 1;
-const int pulses_per_rev = 1000; // for 1.8 degree motor
-const float pulley_diameter = 30.0f; // mm
+// Define constants
+const float pulley_diameter = 3.0; // Diameter of the pulley in cm
+const int pulses_per_rev = 200; // Number of pulses per revolution of the motor
+const int micro_step = 1; // Microstepping setting of the motor driver
+
+float circumference_cm = 3.14159 * pulley_diameter;
 
 const float a_x = 10.800;
 const float b_x = 8.374;
@@ -74,5 +76,6 @@ void moveMotorsXYZ(const std_msgs__msg__Float32* msgX, const std_msgs__msg__Floa
 // Function prototypes for speed and acceleration conversion
 float convertSpeedToHz(float speed_mm_per_s);
 float convertAccelerationToHz2(float acceleration_mm_per_s2);
-        
+int distanceToSteps(float distance_cm);
+
 #endif // COMMON_H

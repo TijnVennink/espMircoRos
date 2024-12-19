@@ -7,13 +7,15 @@
 float motorSpeedInHz = convertSpeedToHz(max_speed_mm_per_s);
 float maxAccelerationInHz2 = convertAccelerationToHz2(max_speed_mm_per_s / 2);
 
+// Global variables for precomputed constants
+float steps_per_cm;
+
 // Function to convert distance in cm to steps
 int distanceToSteps(float distance_cm)
 {
-    float circumference_mm = pulley_diameter * 3.14159;
-    float distance_mm = distance_cm * 10.0f;
-    float steps_per_mm = (pulses_per_rev * micro_step) / circumference_mm;
-    return static_cast<int>(distance_mm * steps_per_mm);
+    float circumference_cm = pulley_diameter * 3.14159; // Calculate circumference in cm
+    float steps_per_cm = (pulses_per_rev * micro_step) / circumference_cm; // Calculate steps per cm
+    return static_cast<int>(distance_cm * steps_per_cm); // Convert distance to steps
 }
 
 // Function to convert speed from mm/s to Hz
@@ -65,24 +67,10 @@ void calculateMaxDegreesPerSec(float max_speed_mm_per_s)
 
 void initMotorControl(FastAccelStepper *stepperX, FastAccelStepper *stepperY, FastAccelStepper *stepperZ)
 {
-    if (stepperX == nullptr)
+    if (stepperX == nullptr || stepperY == nullptr || stepperZ == nullptr)
     {
-        Serial.println("Motor control initialization failed: Stepper is null.");
-        publish_log("Motor control initialization failed: Stepper is null.");
-        return;
-    }
-
-    if (stepperY == nullptr)
-    {
-        Serial.println("Motor control initialization failed: Stepper is null.");
-        publish_log("Motor control initialization failed: Stepper is null.");
-        return;
-    }
-
-    if (stepperZ == nullptr)
-    {
-        Serial.println("Motor control initialization failed: Stepper is null.");
-        publish_log("Motor control initialization failed: Stepper is null.");
+        Serial.println("Motor control initialization failed: One or more steppers are null.");
+        publish_log("Motor control initialization failed: One or more steppers are null.");
         return;
     }
 
@@ -95,6 +83,10 @@ void initMotorControl(FastAccelStepper *stepperX, FastAccelStepper *stepperY, Fa
     stepperY->setAcceleration(maxAccelerationInHz2);
     stepperZ->setSpeedInHz(motorSpeedInHz);
     stepperZ->setAcceleration(maxAccelerationInHz2);
+
+    // Precompute steps per cm
+    float circumference_cm = pulley_diameter * 3.14159;
+    steps_per_cm = (pulses_per_rev * micro_step) / circumference_cm;
 
     // Log max degrees/s for all axes
     calculateMaxDegreesPerSec(max_speed_mm_per_s);
@@ -122,43 +114,13 @@ void stopAllMotors()
 
 void moveMotorsXYZ(const std_msgs__msg__Float32 *msgX, const std_msgs__msg__Float32 *msgY, const std_msgs__msg__Float32 *msgZ)
 {
-    float targetStepsX = distanceToSteps(msgX->data);
-    float targetStepsY = distanceToSteps(msgY->data);
-    float targetStepsZ = distanceToSteps(msgZ->data);
+    // Convert distances to steps using precomputed steps_per_cm
+    int targetStepsIntX = static_cast<int>(msgX->data * steps_per_cm);
+    int targetStepsIntY = static_cast<int>(msgY->data * steps_per_cm);
+    int targetStepsIntZ = static_cast<int>(msgZ->data * steps_per_cm);
 
-    // char targetStepsStrX[20];
-    // char targetStepsStrY[20];
-    // char targetStepsStrZ[20];
-    // dtostrf(targetStepsX, 1, 2, targetStepsStrX);
-    // dtostrf(targetStepsY, 1, 2, targetStepsStrY);
-    // dtostrf(targetStepsZ, 1, 2, targetStepsStrZ);
-    // publish_log(targetStepsStrX);
-    // publish_log(targetStepsStrY);
-    // publish_log(targetStepsStrZ);
-
-    // Convert to integer for motor movement
-    int targetStepsIntX = static_cast<int>(targetStepsX);
-    int targetStepsIntY = static_cast<int>(targetStepsY);
-    int targetStepsIntZ = static_cast<int>(targetStepsZ);
-    
     // Move the motors to the desired positions
     stepperX->moveTo(targetStepsIntX);
     stepperY->moveTo(targetStepsIntY);
     stepperZ->moveTo(targetStepsIntZ);
-
-    // // Wait for the moves to complete or limit switches to trigger
-    // while (stepperX->stepsToStop() > 15 || stepperY->stepsToStop() > 15 || stepperZ->stepsToStop() > 15)
-    // {
-    //     if (digitalRead(limitSwitchPin) == HIGH)
-    //     {
-    //         Serial.println("Limit switch triggered. Stopping all motors.");
-    //         publish_log("Limit switch triggered. Stopping all motors.");
-    //         stopAllMotors();
-    //         break;
-    //     }
-    //     delay(1);
-    // }
-
-    // Serial.println("Motors movement completed.");
-    // publish_log("Motors movement completed.");
 }
