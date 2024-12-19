@@ -2,13 +2,38 @@
 #include "logpublisher.h"
 #include <cmath>
 #include <iostream>
+#include <queue>
+
+// Define constants
+const float pulley_diameter = 3.0; // Diameter of the pulley in cm
+const int pulses_per_rev = 200; // Number of pulses per revolution of the motor
+const int micro_step = 1; // Microstepping setting of the motor driver
+
+float circumference_cm = 3.14159 * pulley_diameter;
+
+const float a_x = 10.800;
+const float b_x = 8.374;
+const float c_x = 12.437;
+
+const float a_y = 10.800;
+const float b_y = 11.937;
+const float c_y = 8.374;
+
+const float a_z = 10.800;
+const float b_z = 8.165;
+
+// Flag to track if motors are currently moving
+bool motorsBusy = false;
+
+// Define the command queue
+std::queue<std::array<int, 3>> commandQueue;
+
+// Global variables for precomputed constants
+float steps_per_cm;
 
 // Define motor control parameters
 float motorSpeedInHz = convertSpeedToHz(max_speed_mm_per_s);
 float maxAccelerationInHz2 = convertAccelerationToHz2(max_speed_mm_per_s / 2);
-
-// Global variables for precomputed constants
-float steps_per_cm;
 
 // Function to convert distance in cm to steps
 int distanceToSteps(float distance_cm)
@@ -112,15 +137,13 @@ void stopAllMotors()
     }
 }
 
-void moveMotorsXYZ(const std_msgs__msg__Float32 *msgX, const std_msgs__msg__Float32 *msgY, const std_msgs__msg__Float32 *msgZ)
-{
-    // Convert distances to steps using precomputed steps_per_cm
-    int targetStepsIntX = static_cast<int>(msgX->data * steps_per_cm);
-    int targetStepsIntY = static_cast<int>(msgY->data * steps_per_cm);
-    int targetStepsIntZ = static_cast<int>(msgZ->data * steps_per_cm);
-
-    // Move the motors to the desired positions
-    stepperX->moveTo(targetStepsIntX);
-    stepperY->moveTo(targetStepsIntY);
-    stepperZ->moveTo(targetStepsIntZ);
+// Function to move motors and set the `motorsBusy` flag
+void moveMotorsXYZ(int targetStepsX, int targetStepsY, int targetStepsZ) {
+    motorsBusy = true;
+    // Move motors to target positions
+    stepperX->moveTo(targetStepsX);
+    stepperY->moveTo(targetStepsY);
+    stepperZ->moveTo(targetStepsZ);
 }
+
+

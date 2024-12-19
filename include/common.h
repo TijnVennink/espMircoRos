@@ -7,6 +7,7 @@
 #include <FastAccelStepper.h>
 #include <std_msgs/msg/float32.h>
 #include <std_msgs/msg/float32_multi_array.h>
+#include <queue>
 
 // Shared variables
 extern FastAccelStepperEngine engine;
@@ -43,22 +44,25 @@ extern float maxAccelerationInHz2;
 #define enablePinStepperZ 17
 
 // Define constants
-const float pulley_diameter = 3.0; // Diameter of the pulley in cm
-const int pulses_per_rev = 200; // Number of pulses per revolution of the motor
-const int micro_step = 1; // Microstepping setting of the motor driver
+extern const float pulley_diameter;
+extern const int pulses_per_rev;
+extern const int micro_step;
 
-float circumference_cm = 3.14159 * pulley_diameter;
+extern float circumference_cm;
 
-const float a_x = 10.800;
-const float b_x = 8.374;
-const float c_x = 12.437;
+extern const float a_x;
+extern const float b_x;
+extern const float c_x;
 
-const float a_y = 10.800;
-const float b_y = 11.937;
-const float c_y = 8.374;
+extern const float a_y;
+extern const float b_y;
+extern const float c_y;
 
-const float a_z = 10.800;
-const float b_z = 8.165;
+extern const float a_z;
+extern const float b_z;
+
+// Flag to track if motors are currently moving
+extern bool motorsBusy;
 
 // Function prototypes
 void init_float32_multi_array(std_msgs__msg__Float32MultiArray *msg, float *buffer, size_t size);
@@ -72,6 +76,13 @@ void moveMotorX(const std_msgs__msg__Float32* msg);
 void moveMotorY(const std_msgs__msg__Float32* msg);
 void moveMotorZ(const std_msgs__msg__Float32* msg);
 void moveMotorsXYZ(const std_msgs__msg__Float32* msgX, const std_msgs__msg__Float32* msgY, const std_msgs__msg__Float32* msgZ);
+void checkMotorsStatus();
+
+// Define the command queue
+extern std::queue<std::array<int, 3>> commandQueue;
+
+// Global variables for precomputed constants
+extern float steps_per_cm;
 
 // Function prototypes for speed and acceleration conversion
 float convertSpeedToHz(float speed_mm_per_s);

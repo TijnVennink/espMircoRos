@@ -4,6 +4,7 @@
 #include "logpublisher.h" 
 #include <std_msgs/msg/float32_multi_array.h>
 #include <stdlib.h>
+#include <queue>
 #include "common.h"
 #include <rclc/executor.h>
 #include <rclc/rclc.h>
@@ -53,6 +54,13 @@ void cleanup_float32_multi_array(std_msgs__msg__Float32MultiArray *msg) {
     std_msgs__msg__Float32MultiArray__fini(msg);
 }
 
+// Define the MotorCommand struct
+struct MotorCommand {
+    int targetStepsX;
+    int targetStepsY;
+    int targetStepsZ;
+};
+
 // Define the message and buffer for pre-allocation
 float buffer[3];
 std_msgs__msg__Float32MultiArray motor_msg;
@@ -69,7 +77,6 @@ FastAccelStepper* stepperX = nullptr;
 FastAccelStepper* stepperY = nullptr;
 FastAccelStepper* stepperZ = nullptr;
 
-
 bool homing_complete = false;
 
 void error_loop() {
@@ -78,35 +85,60 @@ void error_loop() {
     }
 }
 
-// Motor Subscriber callback for controlling x, y, z motors
+// Function to move motors and set the `motorsBusy` flag
+void moveMotorsXYZ(int targetStepsX, int targetStepsY, int targetStepsZ); // Forward declaration
+
+// Callback function for motor commands
 void motor_callback(const void* msgin) {
     const std_msgs__msg__Float32MultiArray* msg = (const std_msgs__msg__Float32MultiArray*)msgin;
 
-    // Check the size of the array for homing, and checking.
     if (msg->data.size < 3) {
         if (!homing_complete) {
             publish_log("All motor inputs are None. Starting homing sequence.");
             homeSteppers(stepperX, stepperY, stepperZ);
-            homing_complete = true;  // Mark homing as complete
+            homing_complete = true;
         } else {
             publish_log("Invalid message size. Expected 3 values.");
             publish_log("Homing already completed. No motor commands to execute.");
         }
+        return;
     }
 
-    // Temporary structures to pass single motor data
-    std_msgs__msg__Float32 x_msg;
-    std_msgs__msg__Float32 y_msg;
-    std_msgs__msg__Float32 z_msg;
+    // Convert distances to steps
+    int targetStepsX = static_cast<int>(msg->data.data[0] * steps_per_cm);
+    int targetStepsY = static_cast<int>(msg->data.data[1] * steps_per_cm);
+    int targetStepsZ = static_cast<int>(msg->data.data[2] * steps_per_cm);
 
-    // Extract motor commands and populate temporary messages
-    x_msg.data = msg->data.data[0]; // X motor control
-    y_msg.data = msg->data.data[1]; // Y motor control
-    z_msg.data = msg->data.data[2]; // Z motor control
-
-    moveMotorsXYZ(&x_msg, &y_msg, &z_msg);
-    return;
+    // Add the command to the queue
+    commandQueue.push({targetStepsX, targetStepsY, targetStepsZ});
 }
+
+// Function to process the next command in the queue
+void processNextCommand() {
+    if (!motorsBusy && !commandQueue.empty()) {
+        // Get the next command from the queue
+        std::array<int, 3> cmdArray = commandQueue.front();
+        MotorCommand cmd = {cmdArray[0], cmdArray[1], cmdArray[2]};
+        commandQueue.pop();
+
+        // Move motors to the new target
+        moveMotorsXYZ(cmd.targetStepsX, cmd.targetStepsY, cmd.targetStepsZ);
+    }
+}
+
+// Function to check if all motors are done moving
+void checkMotorsStatus() {
+    if (motorsBusy &&
+        !stepperX->isRunning() &&
+        !stepperY->isRunning() &&
+        !stepperZ->isRunning()) {
+        // All motors are done moving
+        motorsBusy = false;
+        // Process the next command
+        processNextCommand();
+    }
+}
+
 
 
 void setup() {
@@ -195,6 +227,7 @@ void setup() {
 }
 
 void loop() {
-    delay(100);
-    RCSOFTCHECK(rclc_executor_spin_some(&executor, RCL_MS_TO_NS(100)));
+    delay(10);
+    RCSOFTCHECK(rclc_executor_spin_some(&executor, RCL_MS_TO_NS(10)));
+    checkMotorsStatus();
 }
