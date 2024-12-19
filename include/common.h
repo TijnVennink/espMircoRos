@@ -47,8 +47,6 @@ const float pulley_diameter = 3.0; // Diameter of the pulley in cm
 const int pulses_per_rev = 200; // Number of pulses per revolution of the motor
 const int micro_step = 1; // Microstepping setting of the motor driver
 
-float circumference_cm = 3.14159 * pulley_diameter;
-
 const float a_x = 10.800;
 const float b_x = 8.374;
 const float c_x = 12.437;
