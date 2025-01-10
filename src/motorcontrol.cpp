@@ -5,7 +5,7 @@
 
 // Define motor control parameters
 float motorSpeedInHz = convertSpeedToHz(max_speed_mm_per_s);
-float maxAccelerationInHz2 = convertAccelerationToHz2(max_speed_mm_per_s / 2);
+float maxAccelerationInHz2 = convertAccelerationToHz2(max_speed_mm_per_s / 20);
 
 // Global variables for precomputed constants
 float steps_per_cm;

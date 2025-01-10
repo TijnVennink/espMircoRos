@@ -85,7 +85,7 @@ void motor_callback(const void* msgin) {
     // Check the size of the array for homing, and checking.
     if (msg->data.size < 3) {
         if (!homing_complete) {
-            publish_log("All motor inputs are None. Starting homing sequence.");
+            publish_log("Starting homing sequence. It's coming home!");
             homeSteppers(stepperX, stepperY, stepperZ);
             homing_complete = true;  // Mark homing as complete
         } else {

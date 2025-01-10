@@ -22,7 +22,7 @@ extern float homingSpeedInHz;
 extern float homingAcceleration;
 
 // Max speed in mm/s
-const float max_speed_mm_per_s = 20.0f;
+const float max_speed_mm_per_s = 15.0f;
 
 // Motor control parameters
 extern float motorSpeedInHz;
@@ -45,7 +45,7 @@ extern float maxAccelerationInHz2;
 // Define constants
 const float pulley_diameter = 3.0; // Diameter of the pulley in cm
 const int pulses_per_rev = 200; // Number of pulses per revolution of the motor
-const int micro_step = 1; // Microstepping setting of the motor driver
+const int micro_step = 5; // Microstepping setting of the motor driver
 
 const float a_x = 10.800;
 const float b_x = 8.374;
