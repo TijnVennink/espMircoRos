@@ -57,12 +57,12 @@ void calculateMaxDegreesPerSec(float max_speed_mm_per_s)
     float z_angle_rad = asin((Z0 - dZ_length) / (2 * L_z * sin(beta_z)));
     float max_deg_per_sec_z = degrees(z_angle_rad);
 
-    Serial.println("Max degrees/s for X axis: " + String(max_deg_per_sec_x));
-    Serial.println("Max degrees/s for Y axis: " + String(max_deg_per_sec_y));
-    Serial.println("Max degrees/s for Z axis: " + String(max_deg_per_sec_z));
-    publish_log(("Max degrees/s for X axis: " + String(max_deg_per_sec_x)).c_str());
-    publish_log(("Max degrees/s for Y axis: " + String(max_deg_per_sec_y)).c_str());
-    publish_log(("Max degrees/s for Z axis: " + String(max_deg_per_sec_z)).c_str());
+    // Serial.println("Max degrees/s for X axis: " + String(max_deg_per_sec_x));
+    // Serial.println("Max degrees/s for Y axis: " + String(max_deg_per_sec_y));
+    // Serial.println("Max degrees/s for Z axis: " + String(max_deg_per_sec_z));
+    // publish_log(("Max degrees/s for X axis: " + String(max_deg_per_sec_x)).c_str());
+    // publish_log(("Max degrees/s for Y axis: " + String(max_deg_per_sec_y)).c_str());
+    // publish_log(("Max degrees/s for Z axis: " + String(max_deg_per_sec_z)).c_str());
 }
 
 void initMotorControl(FastAccelStepper *stepperX, FastAccelStepper *stepperY, FastAccelStepper *stepperZ)
@@ -118,6 +118,31 @@ void moveMotorsXYZ(const std_msgs__msg__Float32 *msgX, const std_msgs__msg__Floa
     int targetStepsIntX = static_cast<int>(msgX->data * steps_per_cm);
     int targetStepsIntY = static_cast<int>(msgY->data * steps_per_cm);
     int targetStepsIntZ = static_cast<int>(msgZ->data * steps_per_cm);
+
+    // Ensure the target positions do not exceed the saved limit positions
+    if (targetStepsIntX < x_nega_limit_pos) {
+        publish_log("Target X position below negative limit. Move command disregarded.");
+        return;
+    } else if (targetStepsIntX > x_posi_limit_pos) {
+        publish_log("Target X position above positive limit. Move command disregarded.");
+        return;
+    }
+
+    if (targetStepsIntY < y_nega_limit_pos) {
+        publish_log("Target Y position below negative limit. Move command disregarded.");
+        return;
+    } else if (targetStepsIntY > y_posi_limit_pos) {
+        publish_log("Target Y position above positive limit. Move command disregarded.");
+        return;
+    }
+
+    if (targetStepsIntZ < z_nega_limit_pos) {
+        publish_log("Target Z position below negative limit. Move command disregarded.");
+        return;
+    } else if (targetStepsIntZ > z_posi_limit_pos) {
+        publish_log("Target Z position above positive limit. Move command disregarded.");
+        return;
+    }
 
     // Move the motors to the desired positions
     stepperX->moveTo(targetStepsIntX);

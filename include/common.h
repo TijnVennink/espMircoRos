@@ -58,12 +58,19 @@ const float c_y = 8.374;
 const float a_z = 10.800;
 const float b_z = 8.165;
 
+// Variables to store limit positions
+extern int x_nega_limit_pos;
+extern int x_posi_limit_pos;
+extern int y_nega_limit_pos;
+extern int y_posi_limit_pos;
+extern int z_nega_limit_pos;
+extern int z_posi_limit_pos;
+
 // Function prototypes
 void init_float32_multi_array(std_msgs__msg__Float32MultiArray *msg, float *buffer, size_t size);
 void cleanup_float32_multi_array(std_msgs__msg__Float32MultiArray *msg);
 void initHoming(FastAccelStepper* stepperX, FastAccelStepper* stepperY, FastAccelStepper* stepperZ);
-void homeStepperAxis(FastAccelStepper* stepperX);
-void homeStepperAxis(FastAccelStepper* stepper, const char* stepperName);
+std::pair<int, int> homeStepperAxis(FastAccelStepper* stepper, const char* stepperName);
 void homeSteppers(FastAccelStepper* stepperX, FastAccelStepper* stepperY, FastAccelStepper* stepperZ);
 void initMotorControl(FastAccelStepper* stepperX, FastAccelStepper* stepperY, FastAccelStepper* stepperZ);
 void moveMotorX(const std_msgs__msg__Float32* msg);
