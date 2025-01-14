@@ -69,7 +69,6 @@ FastAccelStepper* stepperX = nullptr;
 FastAccelStepper* stepperY = nullptr;
 FastAccelStepper* stepperZ = nullptr;
 
-
 bool homing_complete = false;
 
 void error_loop() {
@@ -108,7 +107,6 @@ void motor_callback(const void* msgin) {
     return;
 }
 
-
 void setup() {
     init_float32_multi_array(&motor_msg, buffer, 3);
     Serial.begin(115200);
@@ -142,7 +140,7 @@ void setup() {
     stepperY->setAutoEnable(false);
     stepperY->enableOutputs();
 
-        // Initialize stepper Z
+    // Initialize stepper Z
     stepperZ = engine.stepperConnectToPin(stepPinStepperZ);
     if (!stepperZ) {
         Serial.println("Failed to initialize stepper Z!");
@@ -189,12 +187,28 @@ void setup() {
     RCCHECK(rclc_executor_init(&executor, &support.context, 1, &allocator));
     RCCHECK(rclc_executor_add_subscription(&executor, &subscriber, &motor_msg, &motor_callback, ALWAYS));
 
-
     Serial.println("ROS setup completed. Waiting for commands...");
     publish_log("Almighty not robotic ARM legendary ROS setup completed. Waiting for commands...");
 }
 
+unsigned long last_publish_time = 0;
+
 void loop() {
+    unsigned long current_time = millis();
+    if (current_time - last_publish_time >= 500) {
+        last_publish_time = current_time;
+
+        // Get current positions of the steppers
+        long posX = stepperX->getCurrentPosition();
+        long posY = stepperY->getCurrentPosition();
+        long posZ = stepperZ->getCurrentPosition();
+
+        // Create a single log message for all stepper positions
+        char log_msg[200];
+        snprintf(log_msg, sizeof(log_msg), "Stepper positions - X: %ld, Y: %ld, Z: %ld", posX, posY, posZ);
+        publish_log(log_msg);
+    }
+
     delay(100);
     RCSOFTCHECK(rclc_executor_spin_some(&executor, RCL_MS_TO_NS(100)));
 }
